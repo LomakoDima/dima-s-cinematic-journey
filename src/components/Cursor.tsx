@@ -28,7 +28,7 @@ export function Cursor() {
       dy(e.clientY);
 
       const target = (e.target as HTMLElement)?.closest?.("[data-cursor]") as HTMLElement | null;
-      const text = target?.dataset.cursor ?? "";
+      const text = target?.dataset["cursor"] ?? "";
       if (text) {
         l.textContent = text;
         gsap.to(r, { width: 76, height: 76, duration: 0.4, ease: "expo.out" });
