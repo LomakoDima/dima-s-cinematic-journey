@@ -1,24 +1,58 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Cursor } from "@/components/Cursor";
+import { Navigation } from "@/components/Navigation";
+import { Hero } from "@/components/Hero";
+import { AboutSection } from "@/components/AboutSection";
+import { PersonalitySection } from "@/components/PersonalitySection";
+import { JourneyTimeline } from "@/components/JourneyTimeline";
+import { HolidaySection } from "@/components/HolidaySection";
+import { Gallery } from "@/components/Gallery";
+import { FutureSection } from "@/components/FutureSection";
+import { AISection } from "@/components/AISection";
+import { Footer } from "@/components/Footer";
+import { useSmoothScroll } from "@/lib/motion";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Dima — Developer & Creative Technologist, Almaty" },
+      {
+        name: "description",
+        content:
+          "The portfolio of Dima, a developer and creative technologist from Almaty: about, journey, gallery, future plans and how AI helped.",
+      },
+      { property: "og:title", content: "Dima — Developer & Creative Technologist" },
+      {
+        property: "og:description",
+        content:
+          "A cinematic, interactive portfolio: about me, personality, journey, escape, gallery, what's next and Human × AI.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  useSmoothScroll();
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <>
+      <Cursor />
+      <div aria-hidden className="grain-layer" />
+      <Navigation />
+      <main>
+        <Hero />
+        <AboutSection />
+        <PersonalitySection />
+        <JourneyTimeline />
+        <HolidaySection />
+        <Gallery />
+        <FutureSection />
+        <AISection />
+      </main>
+      <Footer />
+    </>
   );
 }
