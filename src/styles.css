@@ -101,6 +101,82 @@
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
 }
 
+/*
+ * Same grain, scoped inside the loader rather than the fixed global layer —
+ * the global one sits at z-60, below the loader's z-95, so it would be
+ * invisible for the loader's lifetime without its own copy. Animated via a
+ * stepped keyframe (cheap: no rAF, and already neutralised by the
+ * prefers-reduced-motion block below through animation-duration).
+ */
+@utility loader-grain {
+  pointer-events: none;
+  position: absolute;
+  inset: -10%;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+  animation: loader-grain-shift 1.6s steps(5) infinite;
+}
+
+@keyframes loader-grain-shift {
+  0%,
+  100% {
+    opacity: 0.04;
+    transform: translate(0, 0);
+  }
+  25% {
+    opacity: 0.065;
+    transform: translate(-1%, 1%);
+  }
+  50% {
+    opacity: 0.035;
+    transform: translate(1%, -1%);
+  }
+  75% {
+    opacity: 0.06;
+    transform: translate(-1%, -1%);
+  }
+}
+
+/*
+ * Pure-CSS safety net: the loader is rendered unconditionally (see
+ * Loader.tsx) so it's part of the very first paint, but that means it must
+ * also be able to clear itself with zero JS. This fade is cancelled by the
+ * `js-driven` class the instant Loader's effect runs — in the normal case it
+ * never gets anywhere near firing. It only actually plays if JS is broken or
+ * blocked, so the page doesn't stay black forever.
+ */
+@keyframes loader-fallback-exit {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.loader-fallback {
+  animation: loader-fallback-exit 0.6s ease forwards;
+  animation-delay: 2.4s;
+}
+
+.loader-fallback.js-driven {
+  animation: none;
+}
+
+/*
+ * The nav bar and custom cursor stay mounted throughout — hiding them by
+ * class (rather than unmounting) means they simply fade back in the instant
+ * .is-loading lifts, in step with the loader's own exit.
+ */
+html.is-loading {
+  overflow: hidden;
+}
+
+html.is-loading .site-chrome {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
 @utility meta {
   font-family: var(--font-sans);
   font-size: 0.6875rem;
@@ -142,11 +218,119 @@
   display: block;
 }
 
+/*
+ * Soft-edged colour reveal for the About portrait.
+ *
+ * --rx/--ry/--r are deliberately UNITLESS and converted with calc(… * 1px).
+ * GSAP infers a custom property's unit from its computed start value, so a
+ * declared "0px" start with a bare numeric end would emit an invalid length and
+ * silently kill the whole mask. Unitless in, calc() out, no unit inference.
+ */
+@utility portrait-reveal {
+  --rx: 0;
+  --ry: 0;
+  --r: 0;
+  opacity: 0;
+  visibility: hidden;
+  -webkit-mask-image: radial-gradient(
+    circle calc(var(--r) * 1px) at calc(var(--rx) * 1px) calc(var(--ry) * 1px),
+    #000 0%,
+    rgb(0 0 0 / 0.9) 42%,
+    rgb(0 0 0 / 0.32) 74%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle calc(var(--r) * 1px) at calc(var(--rx) * 1px) calc(var(--ry) * 1px),
+    #000 0%,
+    rgb(0 0 0 / 0.9) 42%,
+    rgb(0 0 0 / 0.32) 74%,
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/*
+ * The custom cursor hides the native one, but only once the component has
+ * actually mounted — class-gated so a JS failure never leaves a user cursorless.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .has-custom-cursor,
+  .has-custom-cursor * {
+    cursor: none;
+  }
+
+  /*
+   * Hovering a project visual nudges its metadata a few pixels. The metadata is
+   * a following sibling of the frame, so a sibling combinator does this without
+   * any JS. Only `transform` is touched here — the scrub timeline animates
+   * [data-work-layer] and [data-work-line], never [data-work-meta], so there is
+   * no property collision.
+   */
+  [data-work-frame]:hover ~ [data-work-meta] {
+    transform: translateX(6px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
+  }
+
+  /*
+   * Selected Work stacks its projects absolutely and relies on GSAP to reveal
+   * them one at a time. Under reduced motion no timeline runs at all, so the
+   * stack has to fall back to document flow declaratively or every project
+   * would render on top of the first one.
+   *
+   * These rules are unlayered; Tailwind v4 emits its utilities into
+   * @layer utilities, and unlayered rules win over layered ones at any
+   * specificity. That is why plain selectors beat `md:absolute` here.
+   */
+  [data-work-stage] {
+    height: auto;
+    overflow: visible;
+  }
+
+  [data-work-layer] {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  [data-work-layer] + [data-work-layer] {
+    margin-top: 7rem;
+  }
+
+  [data-work-frame] {
+    position: relative;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    clip-path: none;
+  }
+
+  [data-work-img] {
+    transform: none;
+  }
+
+  [data-work-meta] {
+    position: relative;
+    inset: auto;
+    padding: 1.5rem 0 0;
+  }
+
+  [data-work-line] {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  [data-work-chrome] {
+    display: none;
   }
 }

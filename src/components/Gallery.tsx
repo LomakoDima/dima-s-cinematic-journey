@@ -1,17 +1,17 @@
 import { useEffect, useRef } from "react";
 import { gsap, prefersReducedMotion } from "@/lib/motion";
 import { SectionLabel } from "./SectionLabel";
-import g1 from "@/assets/gallery-1.jpg";
-import g2 from "@/assets/gallery-2.jpg";
-import g3 from "@/assets/gallery-3.jpg";
-import g4 from "@/assets/gallery-4.jpg";
+import g1 from "@/assets/programming.png";
+import g2 from "@/assets/mountains.png";
+import g3 from "@/assets/cat.png";
+import g4 from "@/assets/bicycle.png";
 
 const SHOTS = [
   {
     src: g1,
     n: "01",
-    title: "ALMATY",
-    desc: "The street after rain, mountains hiding behind the block.",
+    title: "LATE WORK",
+    desc: "Long nights, glowing screens, and ideas slowly turning into something real.",
     w: 1200,
     h: 1500,
     cls: "md:col-span-5 md:col-start-1 aspect-[4/5]",
@@ -20,8 +20,8 @@ const SHOTS = [
   {
     src: g2,
     n: "02",
-    title: "LATE WORK",
-    desc: "Most of what I know was learned at this hour.",
+    title: "MOUNTAINS",
+    desc: "A place to slow down, breathe deeper, and remember how small the world can make you feel.",
     w: 1500,
     h: 1000,
     cls: "md:col-span-6 md:col-start-7 md:mt-40 aspect-[3/2]",
@@ -31,7 +31,7 @@ const SHOTS = [
     src: g3,
     n: "03",
     title: "LIFE",
-    desc: "Concrete, shadow, and somewhere to walk while thinking.",
+    desc: "Somewhere between the projects and deadlines, there is always room for a little chaos.",
     w: 1100,
     h: 1400,
     cls: "md:col-span-4 md:col-start-3 md:-mt-24 aspect-[4/5]",
@@ -41,7 +41,7 @@ const SHOTS = [
     src: g4,
     n: "04",
     title: "MOTION",
-    desc: "Light trails on the way home — a long exposure experiment.",
+    desc: "A bike ride, an open road, and a little time away from the screen.",
     w: 1500,
     h: 1000,
     cls: "md:col-span-5 md:col-start-8 md:mt-16 aspect-[3/2]",
@@ -85,7 +85,7 @@ export function Gallery() {
 
   return (
     <section ref={root} id="gallery" className="px-5 py-28 md:px-10 md:py-40">
-      <SectionLabel index="05" title="Gallery" />
+      <SectionLabel index="06" title="Gallery" />
       <h2 className="display-lg mt-14 max-w-3xl">FRAMES I KEPT.</h2>
 
       <div className="mt-20 grid gap-14 md:grid-cols-12 md:gap-x-8 md:gap-y-0">
@@ -112,7 +112,9 @@ export function Gallery() {
               <span className="meta text-primary">
                 {s.n} / {s.title}
               </span>
-              <span className="max-w-[55%] text-right text-xs leading-snug text-muted-foreground opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100 md:opacity-40">
+              {/* Always at least dimly visible so the caption isn't hover-locked on touch
+                  devices — brightens on hover/focus for pointer users. */}
+              <span className="max-w-[55%] text-right text-xs leading-snug text-muted-foreground opacity-70 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100 md:opacity-40">
                 {s.desc}
               </span>
             </figcaption>

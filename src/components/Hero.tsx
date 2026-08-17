@@ -1,26 +1,42 @@
 import { useEffect, useRef } from "react";
-import { gsap, prefersReducedMotion, useIsTouch } from "@/lib/motion";
+import { gsap, prefersReducedMotion, useIsTouch, onAppReady } from "@/lib/motion";
+import { HeroVisual } from "./HeroVisual";
 
 export function Hero() {
   const root = useRef<HTMLElement>(null);
   const touch = useIsTouch();
 
+  // The entrance stays paused until the loader hands off (see markAppReady in
+  // lib/motion) — built, not just played, so it starts while the loader
+  // surface is still lifting rather than after it's already gone.
   useEffect(() => {
     const el = root.current;
     if (!el) return;
+    let cancelled = false;
     const ctx = gsap.context(() => {
       if (prefersReducedMotion()) {
         gsap.set("[data-hero]", { yPercent: 0, opacity: 1 });
         return;
       }
-      const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+      const tl = gsap.timeline({ paused: true, defaults: { ease: "expo.out" } });
       tl.fromTo(
         "[data-hero]",
         { yPercent: 115, opacity: 0 },
         { yPercent: 0, opacity: 1, duration: 1.4, stagger: 0.09 },
-      ).fromTo("[data-hero-fade]", { opacity: 0 }, { opacity: 1, duration: 1, stagger: 0.1 }, "-=0.8");
+      ).fromTo(
+        "[data-hero-fade]",
+        { opacity: 0 },
+        { opacity: 1, duration: 1, stagger: 0.1 },
+        "-=0.8",
+      );
+      onAppReady(() => {
+        if (!cancelled) tl.play();
+      });
     }, el);
-    return () => ctx.revert();
+    return () => {
+      cancelled = true;
+      ctx.revert();
+    };
   }, []);
 
   useEffect(() => {
@@ -53,6 +69,8 @@ export function Hero() {
             "radial-gradient(closest-side, color-mix(in oklab, var(--primary) 14%, transparent), transparent)",
         }}
       />
+
+      <HeroVisual />
 
       <div className="flex items-start justify-between">
         <p className="meta" data-hero-fade>

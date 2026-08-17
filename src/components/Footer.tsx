@@ -1,11 +1,13 @@
 import { Magnetic } from "./Magnetic";
-import { useReveal } from "@/lib/motion";
+import { useReveal, scrollToTop } from "@/lib/motion";
 
 export function Footer() {
   const ref = useReveal<HTMLElement>();
 
+  // Routed through Lenis when it's running — a raw window.scrollTo fights the
+  // smooth-scroll loop and stutters.
   const toTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToTop();
   };
 
   return (
@@ -26,7 +28,7 @@ export function Footer() {
       <p className="display-md mt-14 text-primary">KEEP BUILDING.</p>
 
       <div className="hairline-t mt-24 flex items-center justify-between pt-6">
-        <p className="meta">Dima</p>
+        <p className="meta">Dmitriy</p>
         <Magnetic strength={0.3}>
           <button
             type="button"
